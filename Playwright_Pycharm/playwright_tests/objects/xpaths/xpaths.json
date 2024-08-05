@@ -1,0 +1,5 @@
+{
+  "ButtonWithDynamicID": "//button[@type='button' and contains(@class, 'btn btn-primary') and text()='Button with Dynamic ID']",
+  "PlacementChangeButtonID": "//button[contains(concat(' ', normalize-space(@class), ' '), ' btn-primary ')]",
+  "HiddenLayersID": "//button[contains(concat(' ', normalize-space(@class), ' '), '"
+}
