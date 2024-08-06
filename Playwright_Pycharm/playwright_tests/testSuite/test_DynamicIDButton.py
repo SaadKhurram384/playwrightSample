@@ -1,46 +1,35 @@
+import time
+import pytest
 import json
 from playwright.sync_api import Playwright, sync_playwright, expect
-import pytest
-import time
 
-#from playwright_tests.functions.navigations.baseURL import *
-#baseurl = baseURL()
+# ----------------------------------------------------------------------------------------------------------------
+
+from playwright_tests.functions.navigations.baseURL import *
+baseURL = BaseURL()
+from playwright_tests.functions.navigations.tabNavigation import *
+nav = tabNav()
+
+# ----------------------------------------------------------------------------------------------------------------
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_playwright():
+    with sync_playwright() as p:
+        yield p
+
+@pytest.fixture(scope="function", autouse=True)
+def page(setup_playwright):
+    base_url = BaseURL()
+    page, context, browser = base_url.base_url(setup_playwright)
+    yield page
+    context.close()
+    browser.close()
 
 class TestClass:
 
-    @pytest.fixture(autouse=True, scope="session")
-    def openBrowser(self, playwright: Playwright):
-        browser = playwright.chromium.launch(
-            channel="chrome",
-            headless=False,
-            args=["--start-maximized"]
-        )
-        context = browser.new_context(no_viewport=True)
-        openBrowser = context.new_page()
-        # NewPage = page.keyboard.press('Shift+Control+N')
-        return openBrowser
-
-    @pytest.fixture(autouse=True, scope="session")
-    def gotoWebsite(self, playwright: Playwright, openBrowser):
-        gotoWebsite = openBrowser
-        page = gotoWebsite.goto("http://www.uitestingplayground.com/")
-        print(f"Page: {page} - GotoWebsite: {gotoWebsite}")
-        return gotoWebsite
-
-    @pytest.fixture(autouse=True, scope="session")
-    def findButton(self, playwright: Playwright):
-        with open('../objects/xpaths/xpaths.json', 'r') as a:
-            data = json.load(a)
-        buttonID = data["ButtonWithDynamicID"]
-        return buttonID
-
-
-    def test_clickDynamicButton(playwright: Playwright, gotoWebsite, findButton) -> None:
-        #page = gotoWebsite
-        buttonid = findButton
-        gotoWebsite.get_by_role("link", name="Dynamic ID").click()
-        assert gotoWebsite.title() == 'Dynamic ID'
-        #time.sleep(2)
-        gotoWebsite.click(buttonid)
-        #time.sleep(2)
-
+    def test_dynamicIDbutton(self, page) -> None:
+        buttonID = "//button[@type='button' and contains(@class, 'btn btn-primary') and text()='Button with Dynamic ID']"
+        response = nav.navigate(route="Dynamic ID", page=page)
+        assert response.title() == 'Dynamic ID'
+        response.click(buttonID)
+        page.close()
